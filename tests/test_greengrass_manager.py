@@ -5,15 +5,17 @@ from greengrass import GreengrassDevice
 
 
 def os_path_join_mock(path, *paths):
-    path_list = map(str, paths)
-    return '/'.join([path] + path_list)
+    j_path = [path]
+    for p in paths:
+        j_path.append(p)
+    return '/'.join(j_path)
 
 
 @patch('os.path.join')
 def test_can_set_greengrass_thingid(join_mock):
     join_mock.side_effect = os_path_join_mock
     device_name = 'this_device'
-    p = GreengrassDevice(device_name=device_name)
+    p = GreengrassDevice(DeviceName=device_name)
     assert p.device_name == device_name
 
 
@@ -21,7 +23,8 @@ def test_can_set_greengrass_thingid(join_mock):
 def test_can_set_greengrass_private_key_path(join_mock):
     join_mock.side_effect = os_path_join_mock
     private_key_path = 'here'
-    p = GreengrassDevice(private_key_path=private_key_path)
+    p = GreengrassDevice(DeviceName='test',
+                         PrivateKeyPath=private_key_path)
     assert p.private_key_path == private_key_path
 
 
@@ -29,8 +32,9 @@ def test_can_set_greengrass_private_key_path(join_mock):
 def test_can_set_greengrass_certificate_path(join_mock):
     join_mock.side_effect = os_path_join_mock
     certificate_path = 'here'
-    p = GreengrassDevice(certificate_path=certificate_path)
-    assert p.certificate_path == certificate_path
+    p = GreengrassDevice(CertPath=certificate_path,
+                         DeviceName='test')
+    assert p.cert_path == certificate_path
 
 
 @patch('os.path.join')

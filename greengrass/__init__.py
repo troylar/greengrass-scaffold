@@ -28,7 +28,7 @@ class GreengrassDevice(object):
 
     def __init__(self, **kwargs):
         self.device_name = kwargs.get('DeviceName')
-        print 'Device name: {}'.format(self.device_name)
+        print('Device name: {}'.format(self.device_name))
         self.device_root = kwargs.get('DeviceRoot', './devices')
         self.device_path = kwargs.get('DevicePath',
                                       os.path.join(self.device_root,
@@ -98,13 +98,13 @@ class GreengrassDevice(object):
         self.mqtt_shadow_client.connect()
 
     def delta_callback(self, payload, responseStatus, token):
-        print 'delta received'
+        print('delta received')
         pass
 
     def register_handlers(self):
         self.device_shadow_handler = self.mqtt_shadow_client.createShadowHandlerWithName(self.shadow_thing_name, True)  # noqa: E501
-        print 'Registered shadow handlers for {}'.format(self.shadow_thing_name)
-        self.device_shadow_handler.shadowRegisterDeltaCallback(self.delta_callback)  # noqa: E501
+        print('Registered shadow handlers for {}'.format(self.shadow_thing_name))
+        self.device_shadow_handler.shadowRegisterDeltaCallback(self.delta_callback)
 
     def on_registered(self):
         pass
@@ -212,6 +212,6 @@ class GreengrassDevice(object):
     def publish(self, topic, message, qos_level=0):
         print('Publishing {} to {}'.format(message, topic))
         if (self.mqtt_client.publish(topic, json.dumps(message), qos_level)):
-            print 'PUBLISHED'
+            print('PUBLISHED')
         else:
-            print 'NOT PUBLISHED'
+            print('NOT PUBLISHED')
