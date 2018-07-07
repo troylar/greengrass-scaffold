@@ -1,4 +1,3 @@
-import json
 import mock
 from mock import patch
 from greengrass import GreengrassDevice

@@ -63,7 +63,7 @@ class GreengrassDevice(object):
         json_payload = json.dumps(doc)
         print('Updating shadow: {}'.format(json_payload))
         self.device_shadow_handler.shadowUpdate(json_payload,
-                                                self.customShadowCallback_Update,
+                                                self.customShadowCallback_Update, # noqa E:501
                                                 10)
 
     def does_root_cert_exist(self):
@@ -103,8 +103,8 @@ class GreengrassDevice(object):
 
     def register_handlers(self):
         self.device_shadow_handler = self.mqtt_shadow_client.createShadowHandlerWithName(self.shadow_thing_name, True)  # noqa: E501
-        print('Registered shadow handlers for {}'.format(self.shadow_thing_name))
-        self.device_shadow_handler.shadowRegisterDeltaCallback(self.delta_callback)
+        print('Registered shadow handlers for {}'.format(self.shadow_thing_name))  # noqa: E501
+        self.device_shadow_handler.shadowRegisterDeltaCallback(self.delta_callback)  # noqa: E501
 
     def on_registered(self):
         pass
@@ -164,7 +164,8 @@ class GreengrassDevice(object):
                 self.ggc_host_addr = host_addr
                 print('Now we persist the connectivity/identity information')
                 groupCA = os.path.join(self.device_path, self.ca_name)
-                ggcHostPath = os.path.join(self.device_path, self.ggc_addr_name)
+                ggcHostPath = os.path.join(self.device_path,
+                        self.ggc_addr_name)  # noqa: E501
                 groupCAFile = open(groupCA, 'w')
                 groupCAFile.write(ca)
                 groupCAFile.close()

@@ -1,0 +1,13 @@
+atomicwrites==1.1.5
+attrs==18.1.0
+AWSIoTPythonSDK==1.4.0
+ccfargate==0.3.6
+coverage==4.5.1
+mock==2.0.0
+more-itertools==4.2.0
+numpy==1.14.5
+pbr==4.1.0
+pluggy==0.6.0
+py==1.5.4
+pytest==3.6.3
+six==1.11.0
