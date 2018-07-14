@@ -1,6 +1,6 @@
 import mock
 from mock import patch
-from greengrass import GreengrassDevice
+from sod import GreengrassDevice
 
 
 def os_path_join_mock(path, *paths):
@@ -45,8 +45,8 @@ def test_ca_root_full_path_is_set(join_mock):
     assert p.root_ca_path == './devices/credentials/my_device/root.crt'
 
 
-@mock.patch('greengrass.GreengrassDevice.does_root_cert_exist')
-@mock.patch('greengrass.GreengrassDevice.discover_ggc')
+@mock.patch('sod.GreengrassDevice.does_root_cert_exist')
+@mock.patch('sod.GreengrassDevice.discover_ggc')
 @patch('os.path.join')
 def test_no_root_cert_causes_discovery(join_mock, mock_discover_ggc, mock_does_root_cert_exist):  # noqa: E501
     join_mock.side_effect = os_path_join_mock
@@ -57,10 +57,10 @@ def test_no_root_cert_causes_discovery(join_mock, mock_discover_ggc, mock_does_r
     mock_discover_ggc.assert_called_with()
 
 
-@mock.patch('greengrass.GreengrassDevice.does_root_cert_exist')
-@mock.patch('greengrass.GreengrassDevice.discover_ggc')
+@mock.patch('sod.GreengrassDevice.does_root_cert_exist')
+@mock.patch('sod.GreengrassDevice.discover_ggc')
 @patch('os.path.join')
-@mock.patch('greengrass.GreengrassDevice.get_ggc_addr')
+@mock.patch('sod.GreengrassDevice.get_ggc_addr')
 def test_existing_root_cert_causes_no_discovery(get_ggc_addr_mock,
                                                 join_mock,
                                                 mock_discover_ggc,
