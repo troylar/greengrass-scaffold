@@ -10,7 +10,7 @@ from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCor
 from AWSIoTPythonSDK.exception.AWSIoTExceptions import DiscoveryInvalidRequestException  # noqa: E501
 
 
-class GreengrassDevice(object):
+class SodPlug(object):
 
     def device_shadow_handler():
         doc = 'The device_shadow_handler property.'
