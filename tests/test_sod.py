@@ -51,7 +51,7 @@ def test_ca_root_full_path_is_set(join_mock):
 def test_no_root_cert_causes_discovery(join_mock, mock_discover_ggc, mock_does_root_cert_exist):  # noqa: E501
     join_mock.side_effect = os_path_join_mock
     p = SodPlug(DeviceName='my_device',
-                         CaName='root.crt')
+                CaName='root.crt')
     mock_does_root_cert_exist.return_value = False
     p.check_root_cert()
     mock_discover_ggc.assert_called_with()
@@ -68,7 +68,23 @@ def test_existing_root_cert_causes_no_discovery(get_ggc_addr_mock,
     join_mock.side_effect = os_path_join_mock
     get_ggc_addr_mock.return_value = '127.0.0.1'
     p = SodPlug(DeviceName='my_device',
-                         CaName='root.crt')
+                CaName='root.crt')
     mock_does_root_cert_exist.return_value = True
     p.check_root_cert()
     assert not mock_discover_ggc.called
+
+
+@mock.patch('os.path.isfile')
+def test_does_root_cert_file_exist_returns_true_if_exists(isfile_mock):
+    isfile_mock.return_value = True
+    p = SodPlug(DeviceName='my_device',
+                CaName='root.crt')
+    assert p.does_root_cert_exist()
+
+
+@mock.patch('os.path.isfile')
+def test_does_root_cert_file_exist_returns_false_if_not_exists(isfile_mock):
+    isfile_mock.return_value = False
+    p = SodPlug(DeviceName='my_device',
+                CaName='root.crt')
+    assert not p.does_root_cert_exist()
