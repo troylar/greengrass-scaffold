@@ -12,20 +12,6 @@ from AWSIoTPythonSDK.exception.AWSIoTExceptions import DiscoveryInvalidRequestEx
 
 class SodPlug(object):
 
-    def device_shadow_handler():
-        doc = 'The device_shadow_handler property.'
-
-        def fget(self):
-            return self.device_shadow_handler
-
-        def fset(self, value):
-            self.device_shadow_handler = value
-
-        def fdel(self):
-            del self._device_shadow_handler
-        return locals()
-    device_shadow_handler = property(**device_shadow_handler())
-
     def __init__(self, **kwargs):
         self.device_name = kwargs.get('DeviceName')
         print('Device name: {}'.format(self.device_name))
@@ -47,6 +33,8 @@ class SodPlug(object):
         self.max_discovery_retries = int(kwargs.get('MaxDiscoveryRetries', '10'))  # noqa: E501
         self.ggc_addr_name = kwargs.get('CoreName', 'ggc-core')
         self.root_ca_path = os.path.join(self.device_path, self.ca_name)
+        print('iot_endpoint: {}'.format(self.iot_endpoint))
+        print('shadow_thing_name: {}'.format(self.shadow_thing_name))
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.logger = logging.getLogger('AWSIoTPythonSDK.core')
@@ -78,7 +66,6 @@ class SodPlug(object):
 
     def configure_mqtt_client(self):
         self.mqtt_client = self.mqtt_shadow_client.getMQTTConnection()
-        self.mqtt_client.publish('printer', 'test', 0)
         self.mqtt_client.configureAutoReconnectBackoffTime(1, 32, 20)
         self.mqtt_client.configureOfflinePublishQueueing(-1)
         self.mqtt_client.configureDrainingFrequency(2)  # Draining: 2 Hz
@@ -87,6 +74,7 @@ class SodPlug(object):
 
     def configure_shadow_client(self):
         self.mqtt_shadow_client = AWSIoTMQTTShadowClient(self.device_name)
+        print('Created shadow client for {}'.format(self.device_name))
         self.mqtt_shadow_client.configureEndpoint(self.ggc_host_addr, 8883)  # noqa: E501
         self.mqtt_shadow_client.configureCredentials(
             self.root_ca_path, self.private_key_path, self.cert_path)
@@ -105,6 +93,8 @@ class SodPlug(object):
         self.device_shadow_handler = self.mqtt_shadow_client.createShadowHandlerWithName(self.shadow_thing_name, True)  # noqa: E501
         print('Registered shadow handlers for {}'.format(self.shadow_thing_name))  # noqa: E501
         self.device_shadow_handler.shadowRegisterDeltaCallback(self.delta_callback)  # noqa: E501
+        print('Registered delta callback for {}'.format(self.shadow_thing_name))  # noqa: E501
+        self.update_shadow({'test': 'value'})
 
     def on_registered(self):
         pass
@@ -126,6 +116,7 @@ class SodPlug(object):
         ggcHostPath = os.path.join(self.device_path, self.ggc_addr_name)
         f = open(ggcHostPath, 'r')
         self.ggc_host_addr = f.readline()
+        print('Greengrass core: {}'.format(self.ggc_host_addr))
 
     def discover_ggc(self):
         backOffCore = ProgressiveBackOffCore()
@@ -200,6 +191,7 @@ class SodPlug(object):
 
     # Custom Shadow callback for updating the reported state in shadow
     def customShadowCallback_Update(self, payload, responseStatus, token):
+        print(payload)
         if responseStatus == 'timeout':
             print('Update request ' + token + ' time out!')
         if responseStatus == 'accepted':
