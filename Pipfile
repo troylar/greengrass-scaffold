@@ -24,6 +24,7 @@ six = "==1.11.0"
 "urllib3" = "==1.23"
 AWSIoTPythonSDK = "==1.4.0"
 PyYAML = "==3.13"
+"zest.releaser" = "*"
 
 [dev-packages]
 
