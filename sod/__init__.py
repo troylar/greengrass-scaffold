@@ -4,6 +4,7 @@ import sys
 import logging
 import os
 import re
+import boto3
 
 from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider  # noqa: E501
 from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCore  # noqa: E501
@@ -43,15 +44,38 @@ class SodPlug(object):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # noqa: E501
         streamHandler.setFormatter(formatter)
         self.logger.addHandler(streamHandler)
+        self.gg = boto3.client('greengrass')
+        self.iot_client = boto3.client('iot')
+        self.iot_data = boto3.client('iot-data')
+        self.custom_shadow_callback = kwargs.get('CustomShadowCallback', self.customShadowCallback_Update)
+        self.delta_callback = kwargs.get('DeltaCallback', self.delta_callback)
+        print(self.custom_shadow_callback)
+        self.get_thing()
 
-    def update_shadow(self, data):
+    def get_thing(self):
+        response = self.iot_client.describe_thing(thingName=self.shadow_thing_name)
+        self.thing_arn = response['thingArn']
+        print(self.thing_arn)
+
+    def get_shadow(self):
+        response = self.iot_data.get_thing_shadow(thingName=self.shadow_thing_name)
+        shadowData = json.loads(response["payload"].read().decode("utf-8"))
+        return(shadowData)
+
+    def update_shadow(self, **kwargs):
+        desired = kwargs.get('Desired')
+        reported = kwargs.get('Reported')
         doc = {}
         doc['state'] = {}
-        doc['state']['desired'] = data
+        if desired:
+            doc['state']['desired'] = desired
+        if reported:
+            doc['state']['reported'] = reported
         json_payload = json.dumps(doc)
         print('Updating shadow: {}'.format(json_payload))
+        print(self.custom_shadow_callback)
         self.device_shadow_handler.shadowUpdate(json_payload,
-                                                self.customShadowCallback_Update, # noqa E:501
+                                                self.custom_shadow_callback, # noqa E:501
                                                 10)
 
     def does_root_cert_exist(self):
@@ -94,7 +118,6 @@ class SodPlug(object):
         print('Registered shadow handlers for {}'.format(self.shadow_thing_name))  # noqa: E501
         self.device_shadow_handler.shadowRegisterDeltaCallback(self.delta_callback)  # noqa: E501
         print('Registered delta callback for {}'.format(self.shadow_thing_name))  # noqa: E501
-        self.update_shadow({'test': 'value'})
 
     def on_registered(self):
         pass
