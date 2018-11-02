@@ -39,7 +39,7 @@ class SodPlug(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.logger = logging.getLogger('AWSIoTPythonSDK.core')
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.ERROR)
         streamHandler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # noqa: E501
         streamHandler.setFormatter(formatter)
@@ -47,6 +47,7 @@ class SodPlug(object):
         self.gg = boto3.client('greengrass')
         self.iot_client = boto3.client('iot')
         self.iot_data = boto3.client('iot-data')
+        self.publish_only = kwargs.get('PublishOnly', False)
         self.custom_shadow_callback = kwargs.get('CustomShadowCallback', self.customShadowCallback_Update)
         self.delta_callback = kwargs.get('DeltaCallback', self.delta_callback)
         print(self.custom_shadow_callback)
@@ -116,6 +117,8 @@ class SodPlug(object):
     def register_handlers(self):
         self.device_shadow_handler = self.mqtt_shadow_client.createShadowHandlerWithName(self.shadow_thing_name, True)  # noqa: E501
         print('Registered shadow handlers for {}'.format(self.shadow_thing_name))  # noqa: E501
+        if self.publish_only:
+            return
         self.device_shadow_handler.shadowRegisterDeltaCallback(self.delta_callback)  # noqa: E501
         print('Registered delta callback for {}'.format(self.shadow_thing_name))  # noqa: E501
 
@@ -228,6 +231,17 @@ class SodPlug(object):
     def publish(self, topic, message, qos_level=0):
         print('Publishing {} to {}'.format(message, topic))
         if (self.mqtt_client.publish(topic, json.dumps(message), qos_level)):
+            print('PUBLISHED')
+        else:
+            print('NOT PUBLISHED')
+
+    def update_device_shadow(self, device, message, qos_level=0):
+        desired = {'state': {'desired': message}}
+        topic = '$aws/things/{}/shadow/update'.format(device)
+        print('Publishing {} to {}'.format(desired, topic))
+        if (self.mqtt_client.publish(topic,
+                                     json.dumps(desired),
+                                     qos_level)):
             print('PUBLISHED')
         else:
             print('NOT PUBLISHED')
