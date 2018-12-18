@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="greengrass-sod",
-    version='0.0.4.dev0',
+    version='0.0.4',
     author="Troy Larson",
     author_email="troylar@gmail.com",
     description="Easy Greengrass Scaffolding framework",
