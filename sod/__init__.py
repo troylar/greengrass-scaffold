@@ -1,7 +1,6 @@
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import json
 import sys
-import logging
 import os
 import re
 import boto3
@@ -38,12 +37,6 @@ class SodPlug(object):
         print('shadow_thing_name: {}'.format(self.shadow_thing_name))
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.logger = logging.getLogger('AWSIoTPythonSDK.core')
-        self.logger.setLevel(logging.ERROR)
-        streamHandler = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # noqa: E501
-        streamHandler.setFormatter(formatter)
-        self.logger.addHandler(streamHandler)
         self.gg = boto3.client('greengrass')
         self.iot_client = boto3.client('iot')
         self.iot_data = boto3.client('iot-data')
@@ -56,10 +49,11 @@ class SodPlug(object):
     def get_thing(self):
         response = self.iot_client.describe_thing(thingName=self.shadow_thing_name)
         self.thing_arn = response['thingArn']
-        print(self.thing_arn)
 
-    def get_shadow(self):
-        response = self.iot_data.get_thing_shadow(thingName=self.shadow_thing_name)
+    def get_shadow(self, thing_name=None):
+        if not thing_name:
+            thing_name = self.shadow_thing_name
+        response = self.iot_data.get_thing_shadow(thingName=thing_name)
         shadowData = json.loads(response["payload"].read().decode("utf-8"))
         return(shadowData)
 
@@ -123,7 +117,7 @@ class SodPlug(object):
         print('Registered delta callback for {}'.format(self.shadow_thing_name))  # noqa: E501
 
     def on_registered(self):
-        pass
+        print('Device {} is online'.format(self.device_name))
 
     def register(self, **kwargs):
         self.check_root_cert()
@@ -168,8 +162,7 @@ class SodPlug(object):
                 coreList = discoveryInfo.getAllCores()
                 groupId, ca = caList[0]
                 coreInfo = coreList[0]
-                print('Discovered GGC: ' + coreInfo.coreThingArn +
-                      ' from Group: ' + groupId)
+                print('Discovered GGC: ' + coreInfo.coreThingArn + ' from Group: ' + groupId)
                 host_addr = ''
 
                 for addr in coreInfo.connectivityInfoList:
@@ -205,14 +198,12 @@ class SodPlug(object):
                 print('Error message: ' + e.message)
                 retryCount -= 1
                 raise
-                print('\n'+str(retryCount) + '/' +
-                      str(self.max_discovery_retries) + ' retries left\n')
+                print('\n' + str(retryCount) + '/' + str(self.max_discovery_retries) + ' retries left\n')
                 print('Backing off...\n')
                 backOffCore.backOff()
 
         if not discovered:
-            print('Discovery failed after ' + str(self.max_discovery_retries)
-                  + ' retries. Exiting...\n')
+            print('Discovery failed after ' + str(self.max_discovery_retries) + ' retries. Exiting...\n')
             sys.exit(-1)
 
     # Custom Shadow callback for updating the reported state in shadow
